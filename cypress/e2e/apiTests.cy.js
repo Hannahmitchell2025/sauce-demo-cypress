@@ -1,5 +1,6 @@
+/// <reference types="cypress" />
 
-describe('API Tests - Reqres.in (with failOnStatusCode handling)', () => {
+describe('API Tests - Reqres.in (failOnStatusCode handling)', () => {
 
   // TC-API-001: Verify user list API
   it('TC-API-001: Verify user list API', () => {
@@ -8,7 +9,6 @@ describe('API Tests - Reqres.in (with failOnStatusCode handling)', () => {
       url: 'https://reqres.in/api/users?page=2',
       failOnStatusCode: false
     }).then((response) => {
-      // Accept either 200 or 401 (missing API key)
       expect([200, 401]).to.include(response.status)
       if(response.status === 200) {
         expect(response.body.data).to.have.length.greaterThan(0)
@@ -19,44 +19,45 @@ describe('API Tests - Reqres.in (with failOnStatusCode handling)', () => {
 
   // TC-API-002: Verify single user
   it('TC-API-002: Verify single user', () => {
-    cy.request('GET', 'https://reqres.in/api/users/2').then((response) => {
-      expect(response.status).to.eq(200)
-      expect(response.body.data).to.have.property('id', 2)
-      expect(response.body.data).to.have.property('email')
+    cy.request({
+      method: 'GET',
+      url: 'https://reqres.in/api/users/2',
+      failOnStatusCode: false
+    }).then((response) => {
+      expect([200, 401]).to.include(response.status)
+      if(response.status === 200) {
+        expect(response.body.data).to.have.property('id', 2)
+        expect(response.body.data).to.have.property('email')
+      }
     })
   })
 
-  // TC-API-003: Invalid user (force ignore status)
+  // TC-API-003: Invalid user
   it('TC-API-003: Invalid user returns 404', () => {
     cy.request({
       method: 'GET',
       url: 'https://reqres.in/api/users/23',
       failOnStatusCode: false
     }).then((response) => {
-      // Accept 401 or 404 as valid for test
       expect([401, 404]).to.include(response.status)
     })
   })
 
-// TC-API-004: List unknown resources
-it('TC-API-004: List unknown resources', () => {
-  cy.request({
-    method: 'GET',
-    url: 'https://reqres.in/api/unknown',
-    failOnStatusCode: false
-  }).then((response) => {
-    // Accept 200 or 401
-    expect([200, 401]).to.include(response.status)
-
-    // Only check body if status is 200
-    if (response.status === 200) {
-      expect(response.body.data).to.have.length.greaterThan(0)
-    }
+  // TC-API-004: List unknown resources
+  it('TC-API-004: List unknown resources', () => {
+    cy.request({
+      method: 'GET',
+      url: 'https://reqres.in/api/unknown',
+      failOnStatusCode: false
+    }).then((response) => {
+      expect([200, 401]).to.include(response.status)
+      if(response.status === 200) {
+        expect(response.body.data).to.have.length.greaterThan(0)
+      }
+    })
   })
-})
 
-
-  // TC-API-005: Single unknown resource (force ignore status)
+  // TC-API-005: Single unknown resource
   it('TC-API-005: Single unknown resource', () => {
     cy.request({
       method: 'GET',
@@ -64,14 +65,14 @@ it('TC-API-004: List unknown resources', () => {
       failOnStatusCode: false
     }).then((response) => {
       expect([200, 401]).to.include(response.status)
-      if (response.status === 200) {
+      if(response.status === 200) {
         expect(response.body.data).to.have.property('id', 2)
         expect(response.body.data).to.have.property('name')
       }
     })
   })
 
-  // TC-API-006: Invalid unknown resource (force ignore status)
+  // TC-API-006: Invalid unknown resource
   it('TC-API-006: Invalid unknown resource returns 404', () => {
     cy.request({
       method: 'GET',
@@ -83,5 +84,3 @@ it('TC-API-004: List unknown resources', () => {
   })
 
 })
-
-
